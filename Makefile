@@ -9,7 +9,7 @@ RED=\033[31m
 # Python do ambiente pyenv
 PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 
-.PHONY: help install run db-start db-stop db-clean migrate test setup-env dev
+.PHONY: help install run db-start db-stop db-clean db-logs migrate test setup-env dev logs
 
 help:
 	@echo ""
@@ -20,6 +20,8 @@ help:
 	@echo "  $(GREEN)make db-start$(RESET)     - Inicia container PostgreSQL"
 	@echo "  $(GREEN)make db-stop$(RESET)      - Para container PostgreSQL"
 	@echo "  $(GREEN)make db-clean$(RESET)     - Remove container e volume do PostgreSQL"
+	@echo "  $(GREEN)make db-logs$(RESET)      - Visualiza logs do PostgreSQL"
+	@echo "  $(GREEN)make logs$(RESET)         - Visualiza todos os logs do Docker Compose"
 	@echo "  $(GREEN)make migrate$(RESET)      - Roda migrations do Django"
 	@echo "  $(GREEN)make run$(RESET)          - Inicia servidor Django"
 	@echo "  $(GREEN)make test$(RESET)         - Roda testes"
@@ -56,6 +58,14 @@ db-clean:
 	@docker compose down postgres
 	@docker volume rm postgres_data_cakto 2>/dev/null || true
 	@echo "$(GREEN) Dados limpos!$(RESET)"
+
+db-logs:
+	@echo "$(CYAN)📋 Logs do PostgreSQL (Ctrl+C para sair):$(RESET)"
+	@docker compose logs -f postgres
+
+logs:
+	@echo "$(CYAN)📋 Logs de todos os containers (Ctrl+C para sair):$(RESET)"
+	@docker compose logs -f
 
 migrate:
 	@echo "$(YELLOW)Rodando migrations...$(RESET)"
