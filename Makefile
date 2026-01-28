@@ -73,4 +73,20 @@ test:
 	@$(PYTHON) manage.py test
 	@echo "$(GREEN)✅ Testes concluídos!$(RESET)"
 
-dev: install setup-env db-start migrate run
+dev:
+	@echo ""
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(CYAN)  Iniciando ambiente de desenvolvimento$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo ""
+	@echo "$(BLUE)📦 Passo 1/4: Instalando dependências...$(RESET)"
+	@$(MAKE) install
+	@echo ""
+	@echo "$(BLUE)⚙️  Passo 2/4: Configurando ambiente...$(RESET)"
+	@$(MAKE) setup-env
+	@echo ""
+	@echo "$(BLUE)🐘 Passo 3/4: Iniciando PostgreSQL...$(RESET)"
+	@$(MAKE) db-start
+	@echo ""
+	@echo "$(BLUE)🚀 Passo 4/4: Iniciando servidor Django...$(RESET)"
+	@$(MAKE) run
