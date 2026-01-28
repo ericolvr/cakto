@@ -13,7 +13,7 @@ PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 # Help
 # ============================================
 
-.PHONY: help install run db-start db-stop db-clean db-logs migrate test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data
+.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data
 
 help:
 	@echo ""
@@ -27,6 +27,7 @@ help:
 	@echo "  $(GREEN)make test$(RESET)         - Roda testes"
 	@echo "  $(GREEN)make run$(RESET)          - Inicia servidor Django"
 	@echo "  $(GREEN)make migrate$(RESET)      - Roda migrations do Django"
+	@echo "  $(GREEN)make freeze$(RESET)       - Atualiza requirements.txt com dependências instaladas"
 	@echo ""
 	@echo "$(YELLOW)PostgreSQL Container:$(RESET)"
 	@echo "  $(GREEN)make db-start$(RESET)     - Inicia container PostgreSQL"
@@ -74,6 +75,12 @@ migrate:
 	@$(PYTHON) manage.py makemigrations
 	@$(PYTHON) manage.py migrate
 	@echo "$(GREEN)Migrations concluídas!$(RESET)"
+	@$(MAKE) freeze
+
+freeze:
+	@echo "$(YELLOW)Salvando dependências em requirements.txt...$(RESET)"
+	@pip freeze > requirements.txt
+	@echo "$(GREEN)requirements.txt atualizado!$(RESET)"
 
 run:
 	@if [ ! -f .env ]; then cp .env.example .env; fi
