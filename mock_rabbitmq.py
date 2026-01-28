@@ -98,8 +98,7 @@ def main():
     mock = MockRabbitMQ()
     
     if args.single:
-        print("\n📨 Enviando mensagem única de teste...\n")
-        message = mock.generate_branch_message()
+        print("\nEnviando mensagem única de teste...\n")
         mock.send_message(message)
         print(" Mensagem enviada!\n")
     else:
