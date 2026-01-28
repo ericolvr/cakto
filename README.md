@@ -1,6 +1,6 @@
-# Cakto - Sistema de Gestão
+# Cakto
 
-API REST para gerenciamento de Branches, Vigilantes e Histórico com processamento assíncrono de mensagens.
+API REST para gerenciamento de Branchs, Vigilantes e Histórico com processamento assíncrono de mensagens.
 
 ## Stack Tecnológica
 
