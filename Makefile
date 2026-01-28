@@ -226,3 +226,11 @@ mock-dev:
 	@echo ""
 	@echo "$(RED)IMPORTANTE: O Celery worker DEVE estar rodando para processar as mensagens!$(RESET)"
 	@echo ""
+
+# ============================================
+# Logs
+# ============================================
+
+logs:
+	@echo "$(CYAN)Visualizando logs do Docker Compose (Ctrl+C para sair):$(RESET)"
+	@docker compose logs -f
