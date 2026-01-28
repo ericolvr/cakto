@@ -1,56 +1,55 @@
 """
-Mock RabbitMQ - Simula envio de mensagens de History
+Mock RabbitMQ - Envia mensagens de History para o Celery
 Uso: python mock_rabbitmq.py
 """
 import json
 import time
 import random
 from datetime import datetime
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+django.setup()
+
+from history.tasks import process_history_message
 
 
 class MockRabbitMQ:
-    """Simula um produtor RabbitMQ enviando mensagens de histórico"""
+    """Produtor que envia mensagens de histórico para o Celery via RabbitMQ"""
     
     def __init__(self):
-        self.queue_name = "history_queue"
+        self.queue_name = "celery"
         self.messages_sent = 0
     
     def generate_history_message(self):
         """Gera mensagem mock para criar um Histórico"""
         return {
-            "type": "create_history",
-            "data": {
-                "vigilant_id": random.randint(1, 5),
-                "branch_id": random.randint(1, 5),
-            },
-            "timestamp": datetime.now().isoformat(),
-            "message_id": f"msg_{self.messages_sent + 1}"
+            "vigilant_id": random.randint(1, 2),
+            "branch_id": random.randint(1, 2),
         }
     
     def send_message(self, message):
-        """Simula envio de mensagem para a fila"""
+        """Envia mensagem para o Celery processar"""
         self.messages_sent += 1
         print(f"\n{'='*60}")
-        print(f"Mensagem {self.messages_sent} enviada para '{self.queue_name}'")
+        print(f"Mensagem {self.messages_sent} enviada para Celery")
         print(f"{'='*60}")
         print(json.dumps(message, indent=2, ensure_ascii=False))
-        print(f"{'='*60}\n")
         
-        # Salvar em arquivo para o consumer processar
-        with open('history_messages.json', 'a') as f:
-            f.write(json.dumps(message) + '\n')
+        # Enviar para o Celery processar via RabbitMQ
+        task = process_history_message.delay(message)
+        print(f"Task ID: {task.id}")
+        print(f"{'='*60}\n")
     
     def start_producer(self, interval=2, total_messages=10):
         """Inicia o produtor de mensagens de History"""
-        print(f"\nIniciando Mock RabbitMQ Producer - History")
+        print(f"\nIniciando Mock Producer - Enviando para Celery via RabbitMQ")
         print(f"Configuracao:")
-        print(f"   - Fila: {self.queue_name}")
+        print(f"   - Fila Celery: {self.queue_name}")
         print(f"   - Intervalo: {interval}s")
         print(f"   - Total de mensagens: {total_messages}")
         print(f"\n{'='*60}\n")
-        
-        # Limpar arquivo de mensagens
-        open('history_messages.json', 'w').close()
         
         try:
             for i in range(total_messages):
@@ -62,10 +61,9 @@ class MockRabbitMQ:
                     time.sleep(interval)
             
             print(f"\nProdutor finalizado!")
-            print(f"Total de mensagens de History enviadas: {self.messages_sent}")
-            print(f"Mensagens salvas em: history_messages.json")
-            print(f"\nExemplo de mensagem:")
-            print(json.dumps(self.generate_history_message(), indent=2, ensure_ascii=False))
+            print(f"Total de mensagens enviadas para Celery: {self.messages_sent}")
+            print(f"\nVerifique os logs do Celery worker para ver o processamento!")
+            print(f"Ou consulte o banco de dados para ver os registros de History criados.")
             
         except KeyboardInterrupt:
             print(f"\n\nProdutor interrompido pelo usuario")
