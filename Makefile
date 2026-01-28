@@ -13,7 +13,7 @@ PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 # Help
 # ============================================
 
-.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data
+.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run
 
 help:
 	@echo ""
@@ -47,6 +47,10 @@ help:
 	@echo ""
 	@echo "$(YELLOW)Ambiente Completo:$(RESET)"
 	@echo "  $(GREEN)make dev$(RESET)          - Setup completo (install + db + migrate + run)"
+	@echo ""
+	@echo "$(YELLOW)Docker (Produção):$(RESET)"
+	@echo "  $(GREEN)make docker-build$(RESET) - Build da imagem Docker"
+	@echo "  $(GREEN)make docker-run$(RESET)   - Roda aplicação com Docker + Gunicorn"
 	@echo ""
 	@echo "$(YELLOW)Logs:$(RESET)"
 	@echo "  $(GREEN)make logs$(RESET)         - Visualiza todos os logs do Docker Compose"
@@ -233,6 +237,26 @@ mock-dev:
 	@echo ""
 	@echo "$(RED)IMPORTANTE: O Celery worker DEVE estar rodando para processar as mensagens!$(RESET)"
 	@echo ""
+
+# ============================================
+# Docker (Produção)
+# ============================================
+
+docker-build:
+	@echo "$(YELLOW)Building Docker image...$(RESET)"
+	@docker build -t cakto:latest .
+	@echo "$(GREEN)Imagem Docker criada com sucesso!$(RESET)"
+
+docker-run:
+	@echo "$(YELLOW)Rodando aplicação com Docker + Gunicorn...$(RESET)"
+	@docker run -d \
+		--name cakto-app \
+		-p 8000:8000 \
+		--env-file .env \
+		--network cakto_cakto-network \
+		cakto:latest
+	@echo "$(GREEN)Aplicação rodando em http://localhost:8000$(RESET)"
+	@echo "$(CYAN)Logs: docker logs -f cakto-app$(RESET)"
 
 # ============================================
 # Logs
