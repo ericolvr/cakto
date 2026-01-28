@@ -220,3 +220,16 @@ LOGGING = {
         },
     },
 }
+
+# Celery Configuration (usando apenas RabbitMQ)
+CELERY_BROKER_URL = os.getenv(
+    'CELERY_BROKER_URL', 
+    'amqp://cakto:cakto@localhost:5672//'
+)
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
