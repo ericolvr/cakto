@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cakto-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C --auth-host=md5 --auth-local=trust"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_cakto:/var/lib/postgresql/data
+    networks:
+      - cakto-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_cakto:
+    driver: local
+
+networks:
+  cakto-network:
+    driver: bridge
