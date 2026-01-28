@@ -88,21 +88,40 @@ make docker-run   # Rodar com Gunicorn
 ## Arquitetura
 
 ```
-┌─────────────┐
-│   Django    │ ← API REST
-│   (8000)    │
-└──────┬──────┘
+┌──────────────┐
+│  Mock Script │ ← Envia mensagens
+└──────┬───────┘
        │
-       ├─────► PostgreSQL (5432)
+       ▼
+┌──────────────┐
+│  RabbitMQ    │ ← Fila de mensagens
+│   (5672)     │
+└──────┬───────┘
        │
-       └─────► RabbitMQ (5672)
-                   │
-                   ▼
-              ┌─────────┐
-              │ Celery  │ ← Processa mensagens
-              │ Worker  │
-              └─────────┘
+       ▼
+┌──────────────┐
+│Celery Worker │ ← Processa mensagens
+│              │   Cria History no banco
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│  PostgreSQL  │ ← Armazena dados
+│   (5432)     │
+└──────────────┘
+
+┌──────────────┐
+│   Django     │ ← API REST (separado)
+│   (8000)     │   Consulta/CRUD
+└──────┬───────┘
+       │
+       └─────► PostgreSQL (5432)
 ```
+
+**Fluxo:**
+1. Mock envia mensagens → RabbitMQ
+2. Celery Worker consome → Processa → Salva no PostgreSQL
+3. Django API consulta dados do PostgreSQL
 
 ## CI/CD
 
