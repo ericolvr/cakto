@@ -157,6 +157,3 @@ CELERY_BROKER_URL=amqp://cakto:cakto@localhost:5672//
 6. CI valida automaticamente
 7. Merge após aprovação
 
-## Licença
-
-MIT
