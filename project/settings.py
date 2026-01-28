@@ -143,6 +143,7 @@ AUTH_USER_MODEL = 'accounts.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -159,6 +160,26 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
+    'SECURITY': [
+        {
+            'sessionAuth': [],
+        }
+    ],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'sessionAuth': {
+                'type': 'apiKey',
+                'in': 'cookie',
+                'name': 'sessionid',
+                'description': 'Autenticação via sessão Django (faça login em /admin/ primeiro)',
+            },
+            'basicAuth': {
+                'type': 'http',
+                'scheme': 'basic',
+                'description': 'Autenticação básica HTTP (username:password)',
+            },
+        }
+    },
 }
 
 # Logging
