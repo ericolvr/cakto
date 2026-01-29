@@ -15,7 +15,7 @@ API REST para gerenciamento de Branchs, Vigilantes e Histórico com processament
 ## Requisitos
 
 - Python 3.9+
-- Docker Desktop
+- Docker
 - Make
 
 ## Instalação Rápida
