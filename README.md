@@ -20,22 +20,43 @@ API REST para gerenciamento de Branchs, Vigilantes e Histórico com processament
 
 ## Instalação Rápida
 
+### 🐳 Opção 1: Docker (Recomendado)
+
 ```bash
 # 1. Clonar repositório
 git clone https://github.com/ericolvr/cakto.git
 cd cakto
 
-# 2. Setup completo
-make install
-make setup-env
-make db-start
+# 2. Deploy completo (builda imagem + sobe tudo)
+make deploy
+
+# Pronto! Todos os serviços estarão rodando
+```
+
+**Serviços disponíveis:**
+- Django API: http://localhost:8000/api/docs/
+- Grafana: http://localhost:3000 (admin/admin)
+- Prometheus: http://localhost:9090
+- RabbitMQ: http://localhost:15672 (cakto/cakto)
+
+### 🖥️ Opção 2: Desenvolvimento Local
+
+```bash
+# 1. Clonar repositório
+git clone https://github.com/ericolvr/cakto.git
+cd cakto
+
+# 2. Configurar ambiente local
+make dev
+
+# 3. Rodar migrations
 make migrate
 
-# 3. Criar dados de teste
-make create-data
-
-# 4. Iniciar servidor
+# 4. Iniciar Django
 make run
+
+# 5. Em outro terminal, iniciar Celery
+make celery-worker
 ```
 
 Acesse: **http://localhost:8000/api/docs/**
@@ -69,9 +90,21 @@ make mock
 
 ### Docker (Produção)
 ```bash
+make deploy       # Deploy completo (build + up)
 make docker-build # Build imagem
 make docker-run   # Rodar com Gunicorn
 ```
+
+### Geração de Tráfego (para visualizar métricas)
+```bash
+# Tráfego moderado (~6 req/s)
+./send_events.sh
+
+# Tráfego pesado (~60 req/s)
+./send_events_heavy.sh
+```
+
+Pressione **Ctrl+C** para parar.
 
 ## Endpoints da API
 

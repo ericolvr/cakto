@@ -39,6 +39,9 @@ services:
       retries: 5
 
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: cakto:latest
     container_name: cakto-app
     restart: unless-stopped
@@ -63,6 +66,9 @@ services:
     command: gunicorn project.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 60
 
   celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: cakto:latest
     container_name: cakto-celery
     restart: unless-stopped

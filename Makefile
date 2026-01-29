@@ -267,6 +267,10 @@ deploy:
 	@cp .env.docker .env
 	@echo "$(GREEN)✓ Configurado .env.docker$(RESET)"
 	@echo ""
+	@echo "$(YELLOW)Buildando imagem Docker...$(RESET)"
+	@docker-compose build --no-cache
+	@echo "$(GREEN)✓ Imagem buildada!$(RESET)"
+	@echo ""
 	@echo "$(YELLOW)Subindo ambiente completo no Docker...$(RESET)"
 	@docker-compose up -d
 	@sleep 5
