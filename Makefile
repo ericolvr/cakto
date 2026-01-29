@@ -13,7 +13,7 @@ PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 # Help
 # ============================================
 
-.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run
+.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run docker-up docker-down docker-logs prometheus-start prometheus-stop prometheus-logs
 
 help:
 	@echo ""
@@ -49,8 +49,15 @@ help:
 	@echo "  $(GREEN)make dev$(RESET)          - Setup completo (install + db + migrate + run)"
 	@echo ""
 	@echo "$(YELLOW)Docker (Produção):$(RESET)"
-	@echo "  $(GREEN)make docker-build$(RESET) - Build da imagem Docker"
-	@echo "  $(GREEN)make docker-run$(RESET)   - Roda aplicação com Docker + Gunicorn"
+	@echo "  $(GREEN)make docker-build$(RESET)     - Build da imagem Docker"
+	@echo "  $(GREEN)make docker-up$(RESET)        - Sobe TUDO no Docker (Django + Celery + Prometheus)"
+	@echo "  $(GREEN)make docker-down$(RESET)      - Para todos os containers"
+	@echo "  $(GREEN)make docker-logs$(RESET)      - Visualiza logs de todos os containers"
+	@echo ""
+	@echo "$(YELLOW)Observabilidade:$(RESET)"
+	@echo "  $(GREEN)make prometheus-start$(RESET) - Inicia Prometheus"
+	@echo "  $(GREEN)make prometheus-stop$(RESET)  - Para Prometheus"
+	@echo "  $(GREEN)make prometheus-logs$(RESET)  - Visualiza logs do Prometheus"
 	@echo ""
 	@echo "$(YELLOW)Logs:$(RESET)"
 	@echo "  $(GREEN)make logs$(RESET)         - Visualiza todos os logs do Docker Compose"
@@ -257,6 +264,46 @@ docker-run:
 		cakto:latest
 	@echo "$(GREEN)Aplicação rodando em http://localhost:8000$(RESET)"
 	@echo "$(CYAN)Logs: docker logs -f cakto-app$(RESET)"
+
+# ============================================
+# Docker Compose - Ambiente Completo
+# ============================================
+
+docker-up:
+	@echo "$(YELLOW)Subindo ambiente completo no Docker...$(RESET)"
+	@docker-compose up -d
+	@echo "$(GREEN)Ambiente completo rodando!$(RESET)"
+	@echo "$(CYAN)Django API: http://localhost:8000$(RESET)"
+	@echo "$(CYAN)Prometheus: http://localhost:9090$(RESET)"
+	@echo "$(CYAN)RabbitMQ Management: http://localhost:15672$(RESET)"
+	@echo "$(CYAN)Logs: make docker-logs$(RESET)"
+
+docker-down:
+	@echo "$(YELLOW)Parando todos os containers...$(RESET)"
+	@docker-compose down
+	@echo "$(GREEN)Containers parados!$(RESET)"
+
+docker-logs:
+	@echo "$(CYAN)Visualizando logs (Ctrl+C para sair):$(RESET)"
+	@docker-compose logs -f
+
+# ============================================
+# Prometheus
+# ============================================
+
+prometheus-start:
+	@echo "$(YELLOW)Iniciando Prometheus...$(RESET)"
+	@docker-compose up -d prometheus
+	@echo "$(GREEN)Prometheus rodando em http://localhost:9090$(RESET)"
+	@echo "$(CYAN)Métricas Django: http://localhost:8000/metrics$(RESET)"
+
+prometheus-stop:
+	@echo "$(YELLOW)Parando Prometheus...$(RESET)"
+	@docker-compose stop prometheus
+	@echo "$(GREEN)Prometheus parado!$(RESET)"
+
+prometheus-logs:
+	@docker-compose logs -f prometheus
 
 # ============================================
 # Logs

@@ -38,8 +38,59 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    image: cakto:latest
+    container_name: cakto-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - cakto-network
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 60
+
+  celery:
+    image: cakto:latest
+    container_name: cakto-celery
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - cakto-network
+    command: celery -A project worker --loglevel=info
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cakto-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - cakto-network
+    depends_on:
+      - app
+
 volumes:
   postgres_data_cakto:
+    driver: local
+  prometheus_data:
     driver: local
 
 networks:
