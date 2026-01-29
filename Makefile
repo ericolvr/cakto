@@ -13,13 +13,18 @@ PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 # Help
 # ============================================
 
-.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run docker-up docker-down docker-logs prometheus-start prometheus-stop prometheus-logs grafana-start grafana-stop grafana-logs
+.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run docker-up docker-down docker-logs prometheus-start prometheus-stop prometheus-logs grafana-start grafana-stop grafana-logs env-local env-docker env-status
 
 help:
 	@echo ""
 	@echo "$(CYAN)========================================$(RESET)"
 	@echo "$(CYAN)  Comandos Makefile - Projeto Cakto$(RESET)"
 	@echo "$(CYAN)========================================$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Ambientes Principais:$(RESET)"
+	@echo "  $(GREEN)make dev$(RESET)          - Desenvolvimento LOCAL (configura .env.local + sobe infra)"
+	@echo "  $(GREEN)make deploy$(RESET)       - Deploy DOCKER (configura .env.docker + sobe tudo)"
+	@echo "  $(GREEN)make env-status$(RESET)   - Mostra qual ambiente está ativo"
 	@echo ""
 	@echo "$(YELLOW)Setup & Desenvolvimento:$(RESET)"
 	@echo "  $(GREEN)make install$(RESET)      - Instala dependências Python"
@@ -110,6 +115,40 @@ test:
 # PostgreSQL Container
 # ============================================
 
+db-startdev:
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(CYAN)  Configurando Ambiente de Desenvolvimento$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@if [ ! -f .env.local ]; then \
+		echo "$(RED)Erro: .env.local não encontrado!$(RESET)"; \
+		exit 1; \
+	fi
+	@cp .env.local .env
+	@echo "$(GREEN)✓ Ambiente LOCAL configurado (.env.local → .env)$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Subindo infraestrutura (PostgreSQL + RabbitMQ)...$(RESET)"
+	@docker compose up postgres rabbitmq -d
+	@sleep 3
+	@echo "$(GREEN)✓ Infraestrutura pronta!$(RESET)"
+	@echo ""
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(GREEN)Ambiente de desenvolvimento configurado!$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Próximos passos:$(RESET)"
+	@echo "  1. $(GREEN)make migrate$(RESET)      - Rodar migrations"
+	@echo "  2. $(GREEN)make run$(RESET)          - Iniciar Django (porta 8000)"
+	@echo "  3. $(GREEN)make celery-worker$(RESET) - Iniciar Celery (outro terminal)"
+	@echo ""
+	@docker compose down postgres
+	@echo "$(GREEN) PostgreSQL parado!$(RESET)"
+
+db-clean:
+	@echo "$(YELLOW)Limpando dados do PostgreSQL...$(RESET)"
+	@docker compose down postgres
+	@docker volume rm postgres_data_cakto 2>/dev/null || true
+	@echo "$(GREEN) Dados limpos!$(RESET)"
+
 db-start:
 	@if [ ! -f .env ]; then cp .env.example .env; fi
 	@echo "$(YELLOW)Iniciando container PostgreSQL...$(RESET)"
@@ -121,8 +160,6 @@ db-stop:
 	@docker compose down postgres
 	@echo "$(GREEN) PostgreSQL parado!$(RESET)"
 
-db-clean:
-	@echo "$(YELLOW)Limpando dados do PostgreSQL...$(RESET)"
 	@docker compose down postgres
 	@docker volume rm postgres_data_cakto 2>/dev/null || true
 	@echo "$(GREEN) Dados limpos!$(RESET)"
@@ -195,22 +232,58 @@ mock:
 # ============================================
 
 dev:
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(CYAN)  Ambiente de Desenvolvimento LOCAL$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@if [ ! -f .env.local ]; then \
+		echo "$(RED)Erro: .env.local não encontrado!$(RESET)"; \
+		exit 1; \
+	fi
+	@cp .env.local .env
+	@echo "$(GREEN)✓ Configurado .env.local$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Subindo infraestrutura...$(RESET)"
+	@docker compose up postgres rabbitmq -d
+	@sleep 3
+	@echo "$(GREEN)✓ PostgreSQL e RabbitMQ prontos!$(RESET)"
 	@echo ""
 	@echo "$(CYAN)========================================$(RESET)"
-	@echo "$(CYAN)  Iniciando ambiente de desenvolvimento$(RESET)"
+	@echo "$(GREEN)Ambiente LOCAL configurado!$(RESET)"
 	@echo "$(CYAN)========================================$(RESET)"
 	@echo ""
-	@echo "$(BLUE)Passo 1/4: Instalando dependências...$(RESET)"
-	@$(MAKE) install
+	@echo "$(YELLOW)Próximos passos:$(RESET)"
+	@echo "  1. $(GREEN)make migrate$(RESET)      - Rodar migrations"
+	@echo "  2. $(GREEN)make run$(RESET)          - Django local (porta 8000)"
+	@echo "  3. $(GREEN)make celery-worker$(RESET) - Celery (outro terminal)"
+
+deploy:
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(CYAN)  Deploy DOCKER (Produção)$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@if [ ! -f .env.docker ]; then \
+		echo "$(RED)Erro: .env.docker não encontrado!$(RESET)"; \
+		exit 1; \
+	fi
+	@cp .env.docker .env
+	@echo "$(GREEN)✓ Configurado .env.docker$(RESET)"
 	@echo ""
-	@echo "$(BLUE)Passo 2/4: Configurando ambiente...$(RESET)"
-	@$(MAKE) setup-env
+	@echo "$(YELLOW)Subindo ambiente completo no Docker...$(RESET)"
+	@docker-compose up -d
+	@sleep 5
 	@echo ""
-	@echo "$(BLUE)Passo 3/4: Iniciando PostgreSQL...$(RESET)"
-	@$(MAKE) db-start
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(GREEN)Ambiente DOCKER rodando!$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
 	@echo ""
-	@echo "$(BLUE)Passo 4/4: Iniciando servidor Django...$(RESET)"
-	@$(MAKE) run
+	@echo "$(YELLOW)Serviços disponíveis:$(RESET)"
+	@echo "  • Django API:    $(CYAN)http://localhost:8000$(RESET)"
+	@echo "  • Prometheus:    $(CYAN)http://localhost:9090$(RESET)"
+	@echo "  • Grafana:       $(CYAN)http://localhost:3000$(RESET) (admin/admin)"
+	@echo "  • RabbitMQ:      $(CYAN)http://localhost:15672$(RESET) (cakto/cakto)"
+	@echo ""
+	@echo "$(YELLOW)Comandos úteis:$(RESET)"
+	@echo "  • $(GREEN)docker-compose logs -f$(RESET)  - Ver logs"
+	@echo "  • $(GREEN)docker-compose down$(RESET)     - Parar tudo"
 
 mock-dev:
 	@echo ""
@@ -322,6 +395,67 @@ grafana-stop:
 
 grafana-logs:
 	@docker-compose logs -f grafana
+
+# ============================================
+# Gerenciamento de Ambientes
+# ============================================
+
+env-local:
+	@echo "$(YELLOW)Configurando ambiente LOCAL (Django fora do Docker)...$(RESET)"
+	@if [ ! -f .env.local ]; then \
+		echo "$(RED)Erro: .env.local não encontrado!$(RESET)"; \
+		exit 1; \
+	fi
+	@cp .env.local .env
+	@echo "$(GREEN)✓ Ambiente LOCAL configurado!$(RESET)"
+	@echo "$(CYAN)DB_HOST=localhost, CELERY_BROKER=localhost$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Próximos passos:$(RESET)"
+	@echo "  1. $(GREEN)make infra-up$(RESET)     - Subir PostgreSQL e RabbitMQ"
+	@echo "  2. $(GREEN)make migrate$(RESET)      - Rodar migrations"
+	@echo "  3. $(GREEN)make run$(RESET)          - Rodar Django localmente"
+	@echo "  4. $(GREEN)make celery-worker$(RESET) - Rodar Celery (outro terminal)"
+
+env-docker:
+	@echo "$(YELLOW)Configurando ambiente DOCKER (tudo containerizado)...$(RESET)"
+	@if [ ! -f .env.docker ]; then \
+		echo "$(RED)Erro: .env.docker não encontrado!$(RESET)"; \
+		exit 1; \
+	fi
+	@cp .env.docker .env
+	@echo "$(GREEN)✓ Ambiente DOCKER configurado!$(RESET)"
+	@echo "$(CYAN)DB_HOST=postgres, CELERY_BROKER=rabbitmq$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Próximos passos:$(RESET)"
+	@echo "  1. $(GREEN)docker-compose up -d$(RESET) - Subir tudo no Docker"
+	@echo "  2. Acessar: $(CYAN)http://localhost:8000$(RESET)"
+
+env-status:
+	@echo "$(CYAN)========================================$(RESET)"
+	@echo "$(CYAN)  Status do Ambiente$(RESET)"
+	@echo "$(CYAN)========================================$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(RED)✗ Nenhum ambiente configurado (.env não existe)$(RESET)"; \
+		echo "$(YELLOW)Execute: make env-local ou make env-docker$(RESET)"; \
+	else \
+		echo "$(GREEN)✓ Arquivo .env encontrado$(RESET)"; \
+		echo ""; \
+		DB_HOST=$$(grep "^DB_HOST=" .env | cut -d'=' -f2); \
+		BROKER=$$(grep "^CELERY_BROKER_URL=" .env | grep -o "@[^:]*" | cut -d'@' -f2); \
+		if [ "$$DB_HOST" = "localhost" ]; then \
+			echo "$(YELLOW)Ambiente: LOCAL$(RESET)"; \
+			echo "  DB_HOST: $$DB_HOST"; \
+			echo "  Broker: $$BROKER"; \
+		elif [ "$$DB_HOST" = "postgres" ]; then \
+			echo "$(YELLOW)Ambiente: DOCKER$(RESET)"; \
+			echo "  DB_HOST: $$DB_HOST"; \
+			echo "  Broker: $$BROKER"; \
+		else \
+			echo "$(RED)Ambiente: DESCONHECIDO$(RESET)"; \
+			echo "  DB_HOST: $$DB_HOST"; \
+		fi; \
+	fi
+	@echo "$(CYAN)========================================$(RESET)"
 
 # ============================================
 # Logs

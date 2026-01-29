@@ -30,6 +30,8 @@ ENV/
 .env
 .env.*
 !.env.example
+!.env.local
+!.env.docker
 
 *.log
 logs/*.log
