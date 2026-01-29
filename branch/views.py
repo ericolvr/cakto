@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from .models import Branch
 from .serializers import BranchSerializer
@@ -11,6 +12,7 @@ class BranchListCreateAPIView(APIView):
     GET: Lista todas as branches
     POST: Cria uma nova branch
     """
+    permission_classes = [AllowAny]
     
     def get(self, request):
         branches = Branch.objects.all()
@@ -32,6 +34,7 @@ class BranchDetailAPIView(APIView):
     PATCH: Atualiza parcialmente uma branch
     DELETE: Remove uma branch
     """
+    permission_classes = [AllowAny]
     
     def get(self, request, pk):
         branch = get_object_or_404(Branch, pk=pk)

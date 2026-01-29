@@ -1,0 +1,5 @@
+for i in {1..20}; do 
+  curl -s http://localhost:8000/api/branchs/ > /dev/null
+  echo "Requisição $i"
+  sleep 0.5
+done

@@ -13,7 +13,7 @@ PYTHON=~/.pyenv/versions/bnb/envs/access/bin/python
 # Help
 # ============================================
 
-.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run docker-up docker-down docker-logs prometheus-start prometheus-stop prometheus-logs
+.PHONY: help install run db-start db-stop db-clean db-logs migrate freeze test setup-env dev mock-dev logs rabbit-start rabbit-stop rabbit-logs celery-worker celery-stop mock create-data docker-build docker-run docker-up docker-down docker-logs prometheus-start prometheus-stop prometheus-logs grafana-start grafana-stop grafana-logs
 
 help:
 	@echo ""
@@ -58,6 +58,9 @@ help:
 	@echo "  $(GREEN)make prometheus-start$(RESET) - Inicia Prometheus"
 	@echo "  $(GREEN)make prometheus-stop$(RESET)  - Para Prometheus"
 	@echo "  $(GREEN)make prometheus-logs$(RESET)  - Visualiza logs do Prometheus"
+	@echo "  $(GREEN)make grafana-start$(RESET)    - Inicia Grafana"
+	@echo "  $(GREEN)make grafana-stop$(RESET)     - Para Grafana"
+	@echo "  $(GREEN)make grafana-logs$(RESET)     - Visualiza logs do Grafana"
 	@echo ""
 	@echo "$(YELLOW)Logs:$(RESET)"
 	@echo "  $(GREEN)make logs$(RESET)         - Visualiza todos os logs do Docker Compose"
@@ -275,6 +278,7 @@ docker-up:
 	@echo "$(GREEN)Ambiente completo rodando!$(RESET)"
 	@echo "$(CYAN)Django API: http://localhost:8000$(RESET)"
 	@echo "$(CYAN)Prometheus: http://localhost:9090$(RESET)"
+	@echo "$(CYAN)Grafana: http://localhost:3000 (admin/admin)$(RESET)"
 	@echo "$(CYAN)RabbitMQ Management: http://localhost:15672$(RESET)"
 	@echo "$(CYAN)Logs: make docker-logs$(RESET)"
 
@@ -304,6 +308,20 @@ prometheus-stop:
 
 prometheus-logs:
 	@docker-compose logs -f prometheus
+
+grafana-start:
+	@echo "$(YELLOW)Iniciando Grafana...$(RESET)"
+	@docker-compose up -d grafana
+	@echo "$(GREEN)Grafana rodando em http://localhost:3000$(RESET)"
+	@echo "$(CYAN)Login: admin / Senha: admin$(RESET)"
+
+grafana-stop:
+	@echo "$(YELLOW)Parando Grafana...$(RESET)"
+	@docker-compose stop grafana
+	@echo "$(GREEN)Grafana parado!$(RESET)"
+
+grafana-logs:
+	@docker-compose logs -f grafana
 
 # ============================================
 # Logs

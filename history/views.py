@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 
 from .models import History
@@ -12,6 +13,7 @@ class HistoryListCreateAPIView(APIView):
     GET: Lista todos os históricos
     POST: Cria um novo histórico
     """
+    permission_classes = [AllowAny]
     
     def get(self, request):
         histories = History.objects.all()
@@ -33,6 +35,7 @@ class HistoryDetailAPIView(APIView):
     PATCH: Atualiza parcialmente um histórico
     DELETE: Remove um histórico
     """
+    permission_classes = [AllowAny]
     
     def get(self, request, pk):
         history = get_object_or_404(History, pk=pk)

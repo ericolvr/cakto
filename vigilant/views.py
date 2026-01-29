@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth import get_user_model
@@ -15,6 +16,7 @@ class VigilantListCreateAPIView(APIView):
     GET: Lista todos os vigilantes
     POST: Cria um novo vigilante (e automaticamente cria um User associado)
     """
+    permission_classes = [AllowAny]
     
     def get(self, request):
         vigilants = Vigilant.objects.all()
@@ -64,6 +66,7 @@ class VigilantDetailAPIView(APIView):
     PATCH: Atualiza parcialmente um vigilante
     DELETE: Remove um vigilante
     """
+    permission_classes = [AllowAny]
     
     def get(self, request, pk):
         vigilant = get_object_or_404(Vigilant, pk=pk)
